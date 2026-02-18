@@ -1,0 +1,8 @@
+[package]
+name = "lap_tap_audio"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rodio = "0.21.1"
+rand = "0.10.0"

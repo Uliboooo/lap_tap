@@ -1,0 +1,8 @@
+[package]
+name = "lap_tap"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+evdev = "0.13.2"
+ctrlc = "3.5.2"
