@@ -1,5 +1,5 @@
 use std::{
-    io::{BufReader, Read, Write},
+    io::{BufRead, BufReader, Read, Write},
     path::PathBuf,
     process::Stdio,
     sync::{Arc, atomic::AtomicBool},
@@ -42,7 +42,15 @@ fn main() {
         .to_string();
 
     let mut child = std::process::Command::new("sudo")
-        .args(["-u", "#1000", &c, &c2])
+        // use 1000 for using audio server
+        .args([
+            "-u",
+            "#1000",
+            "env",
+            "XDG_RUNTIME_DIR=/run/user/1000",
+            &c,
+            &c2,
+        ])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
@@ -59,10 +67,11 @@ fn main() {
                     let state = match value {
                         0 => "Released".to_string(),
                         1 => {
-                            stdin.write_all(b"a").unwrap();
+                            stdin.write_all(b"a\n").unwrap();
+                            stdin.flush().unwrap();
                             let mut res = String::new();
-                            let _out = out_reader.read_to_string(&mut res).unwrap();
-                            res
+                            out_reader.read_line(&mut res).unwrap();
+                            res.trim().to_string()
                         }
                         2 => "Repeated".to_string(),
                         _ => "Unknown".to_string(),

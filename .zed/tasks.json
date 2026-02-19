@@ -1,0 +1,10 @@
+[
+  {
+    "label": "Debug with Args",
+    "command": "cargo build",
+    "args": [],
+    "run_options": {
+      "args": ["/home/coyuki/Develop/lap-tap/lap_tap/resources/audio-effects"],
+    },
+  },
+]

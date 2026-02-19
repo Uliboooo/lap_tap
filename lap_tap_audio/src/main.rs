@@ -1,26 +1,21 @@
 use rodio::{Decoder, Source};
 use std::{
-    fs::{self, File},
-    io::{BufRead, BufReader, Cursor},
+    fs::{self},
+    io::{BufRead, BufReader, Cursor, Write},
     path::{Path, PathBuf},
-    thread,
-    time::Duration,
+    thread::sleep,
 };
 
-fn get_dur<P: AsRef<Path>>(path: P) -> u128 {
-    let file = File::open(path).unwrap();
-    let deoder = Decoder::new(file).unwrap();
-    deoder.total_duration().unwrap().as_millis()
-}
+pub fn tap(stream_handle: &rodio::OutputStream, audio_data: &[u8]) {
+    let cursor = Cursor::new(audio_data.to_owned());
+    let decoder = Decoder::new(cursor).unwrap();
+    let duration = decoder.total_duration().unwrap();
 
-pub fn tap(audio_data: &[u8], audio_duration_mills: u64) {
-    let stream_handle = rodio::OutputStreamBuilder::open_default_stream().unwrap();
-
-    let s = Decoder::try_from(Cursor::new(audio_data.to_owned().clone())).unwrap();
-    stream_handle.mixer().add(s);
+    stream_handle.mixer().add(decoder);
     println!("sound!");
+    std::io::stdout().flush().unwrap();
 
-    thread::sleep(Duration::from_millis(audio_duration_mills));
+    sleep(duration);
 }
 
 fn load_audio_files<P: AsRef<Path>>(p: P) -> Vec<(PathBuf, Vec<u8>)> {
@@ -36,33 +31,41 @@ fn load_audio_files<P: AsRef<Path>>(p: P) -> Vec<(PathBuf, Vec<u8>)> {
         .collect::<Vec<_>>()
 }
 
-fn main() {
-    let mut args = std::env::args();
-    let folder = args.nth(1).unwrap();
+fn run_audio_loop<P: AsRef<Path>>(folder: P) {
     let loaded = load_audio_files(folder);
-    let max = loaded.len();
+    let stream_handle = rodio::OutputStreamBuilder::open_default_stream().unwrap();
 
     let reader = BufReader::new(std::io::stdin());
 
     for l in reader.lines() {
         match l {
             Ok(_v) => {
-                let rand_index = rand::random_range(0..max);
+                let rand_index = rand::random_range(0..loaded.len());
                 let a_buf = loaded.get(rand_index).unwrap();
-                let dur = get_dur(&a_buf.0);
-                tap(&a_buf.1, dur as u64);
+                tap(&stream_handle, &a_buf.1);
             }
-            Err(_) => continue,
+            Err(e) => {
+                eprintln!("{e}");
+                continue;
+            }
         }
     }
 }
 
+fn main() {
+    let mut args = std::env::args();
+    let folder = args.nth(1).unwrap();
+    run_audio_loop(folder);
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{get_dur, load_audio_files, tap};
+    use crate::{load_audio_files, run_audio_loop, tap};
+    use std::thread;
+    use std::time::Duration;
 
     #[test]
-    fn test() {
+    fn audio_test() {
         let c = std::env::current_dir()
             .unwrap()
             .parent()
@@ -72,12 +75,18 @@ mod tests {
         println!("{:?}", c);
         println!("{:?}", c.exists());
         let loaded = load_audio_files(c);
-        // println!("{:?}", loaded);
         let max = loaded.len();
 
+        let stream_handle = rodio::OutputStreamBuilder::open_default_stream().unwrap();
         let rand_index = rand::random_range(0..max);
         let a_buf = loaded.get(rand_index).unwrap();
-        let dur = get_dur(&a_buf.0);
-        tap(&a_buf.1, dur as u64);
+        tap(&stream_handle, &a_buf.1);
+
+        thread::sleep(Duration::from_millis(500));
+    }
+
+    #[test]
+    fn foo1() {
+        run_audio_loop("/home/coyuki/Develop/lap-tap/lap_tap/resources/audio-effects/");
     }
 }
