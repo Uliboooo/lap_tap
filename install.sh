@@ -45,8 +45,8 @@ mkdir -p "$INSTALL_PATH" || error_exit "Failed to create install directory"
 echo "Downloading resources from GitHub..."
 
 # zipファイルをダウンロード
-if ! wget -q -O "${WORK_DIR}/lap_tap.zip" "$GITHUB_RELEASE_URL"; then
-    error_exit "Failed to download from GitHub. Check your internet connection or the URL."
+if ! wget --no-verbose --show-progress -O "${WORK_DIR}/lap_tap.zip" "$GITHUB_RELEASE_URL"; then
+    error_exit "Failed to download..."
 fi
 
 # ダウンロードしたファイルが存在するか確認
