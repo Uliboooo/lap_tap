@@ -474,7 +474,7 @@ dependencies = [
 
 [[package]]
 name = "lap_tap"
-version = "0.2.0"
+version = "0.2.2"
 dependencies = [
  "clap",
  "ctrlc",
@@ -483,7 +483,7 @@ dependencies = [
 
 [[package]]
 name = "lap_tap_audio"
-version = "0.2.0"
+version = "0.2.2"
 dependencies = [
  "rand",
  "rodio",

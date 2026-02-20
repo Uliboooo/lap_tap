@@ -69,6 +69,9 @@ if ! cp -rv "${WORK_DIR}/release"/* "$INSTALL_PATH/"; then
     error_exit "Failed to copy files"
 fi
 
+# 実行権限の付与（zip解凍後に権限が失われる可能性があるため）
+chmod +x "$INSTALL_PATH/lap_tap" "$INSTALL_PATH/lap_tap_audio"
+
 echo "----------------------------------------"
 echo -e "${GREEN}Installation complete!${NC}"
 echo ""
