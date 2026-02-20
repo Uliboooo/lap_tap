@@ -1,3 +1,4 @@
+use clap::Parser;
 use std::{
     io::{BufRead, BufReader, Write},
     path::PathBuf,
@@ -7,7 +8,42 @@ use std::{
 
 use evdev::EventSummary;
 
+#[derive(Debug, Parser)]
+struct Cli {
+    #[arg(short = 'a', long = "audio_p_path", help = "sounds binaly path")]
+    audio_process_bin_path: Option<String>,
+}
+
+impl Cli {
+    fn resolve_sound_bin_path(&self) -> Result<PathBuf, std::io::Error> {
+        let res = match &self.audio_process_bin_path {
+            Some(v) => PathBuf::from(v),
+            None => std::env::home_dir()
+                .unwrap()
+                .join(".local")
+                .join("bin")
+                .join("lap_tap")
+                .join("lap_tap_audio"),
+        };
+        Ok(res)
+    }
+    fn resolve_sound_src_path(&self) -> Result<PathBuf, std::io::Error> {
+        let res = match &self.audio_process_bin_path {
+            Some(v) => PathBuf::from(v),
+            None => std::env::home_dir()
+                .unwrap()
+                .join(".local")
+                .join("bin")
+                .join("lap_tap")
+                .join("resources"),
+        };
+        Ok(res)
+    }
+}
+
 fn main() {
+    let cli = Cli::parse();
+
     let device_path = "/dev/input/event4";
     let mut device = evdev::Device::open(device_path).unwrap();
     println!("Watching device: {}", device.name().unwrap_or("Unknown"));
@@ -20,24 +56,15 @@ fn main() {
     })
     .unwrap();
 
-    let c = PathBuf::from("/home")
-        .join("coyuki")
-        .join("Develop")
-        .join("lap-tap")
-        .join("lap_tap")
-        .join("target")
-        .join("release")
-        .join("lap_tap_audio")
+    let sound_process_bin_path = cli
+        .resolve_sound_bin_path()
+        .unwrap()
         .to_string_lossy()
         .to_string();
 
-    let c2 = PathBuf::from("/home")
-        .join("coyuki")
-        .join("Develop")
-        .join("lap-tap")
-        .join("lap_tap")
-        .join("resources")
-        .join("audio-effects")
+    let resouce_path = cli
+        .resolve_sound_src_path()
+        .unwrap()
         .to_string_lossy()
         .to_string();
 
@@ -48,8 +75,8 @@ fn main() {
             "#1000",
             "env",
             "XDG_RUNTIME_DIR=/run/user/1000",
-            &c,
-            &c2,
+            &sound_process_bin_path,
+            &resouce_path,
         ])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
