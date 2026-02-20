@@ -5,5 +5,5 @@
 
 ## issues
 
-- [ ] delay sound -> async?
-- [ ] resolve path problem (now, using fullpath and hardcode...)
+- [ ] delay sound -> async? -> https://github.com/Uliboooo/lap_tap/issues/1
+- [ ] resolve path problem (now, using fullpath and hardcode...) -> https://github.com/Uliboooo/lap_tap/issues/2
